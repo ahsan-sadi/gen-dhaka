@@ -27,7 +27,6 @@ import {
 import { RoleBadge } from "@/components/shared/role-badge"
 import { getNavItems } from "@/components/dashboard/nav-config"
 import { dashboardHome, useAuth } from "@/lib/auth-context"
-import { signOutEverywhere } from "@/lib/auth-client"
 
 export function Topbar({ user, menu }) {
   const pathname = usePathname()
@@ -46,9 +45,8 @@ export function Topbar({ user, menu }) {
   const title = current?.label || "Dashboard"
 
   const handleSignOut = async () => {
-    /* Revokes the session on every device and clears the demo-store session. */
-    await Promise.allSettled([signOutEverywhere(), signOut()])
-    toast.success("Signed out from all devices")
+    await signOut()
+    toast.success("Signed out successfully")
     router.push("/")
     router.refresh()
   }
@@ -112,7 +110,7 @@ export function Topbar({ user, menu }) {
                     </span>
                   </span>
                 </span>
-                <RoleBadge role={user.role} plan={user.plan} />
+                <RoleBadge role={user.role} />
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

@@ -14,15 +14,15 @@ export default function NotFound() {
       </h1>
       <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
         The page you are looking for does not exist or may have been moved.
-        Let&apos;s get you back to finding your perfect tutor.
+        Let&apos;s get you back to the BAFWWA GEN DHAKA portal.
       </p>
 
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Button size="lg" render={<Link href="/" />}>
           <Home className="size-4" /> Back to Home
         </Button>
-        <Button size="lg" variant="outline" render={<Link href="/tuitions" />}>
-          <Search className="size-4" /> Browse Tuitions
+        <Button size="lg" variant="outline" render={<Link href="/sign-in" />}>
+          <Search className="size-4" /> Portal Login
         </Button>
       </div>
 
@@ -33,7 +33,7 @@ export default function NotFound() {
           href="/about"
           className="font-medium text-primary hover:underline"
         >
-          how MentorLagbe works
+          how BAFWWA GEN DHAKA works
         </Link>
       </p>
     </div>

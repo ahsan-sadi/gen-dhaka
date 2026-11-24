@@ -2,45 +2,14 @@ import Link from "next/link"
 import { Mail, MapPin, Phone } from "lucide-react"
 
 import { Logo } from "@/components/site/logo"
-import {
-  XIcon,
-  GithubIcon,
-  LinkedinIcon,
-  FacebookIcon,
-  YoutubeIcon,
-} from "@/components/site/social-icons"
-import { NAV_LINKS } from "@/lib/constants"
+import { NAV_LINKS, SCHOOL_INFO, SESSIONS } from "@/lib/constants"
 
-const quickLinks = [
-  { href: "/sign-up", label: "Become a Tutor" },
+const portalLinks = [
+  { href: "/sign-in", label: "Portal Login" },
+  { href: "/dashboard/principal", label: "Principal Dashboard" },
+  { href: "/dashboard/admin", label: "Admin Dashboard" },
+  { href: "/dashboard/teacher", label: "Teacher Dashboard" },
   { href: "/dashboard/student", label: "Student Dashboard" },
-  { href: "/dashboard/tutor", label: "Tutor Dashboard" },
-  { href: "/dashboard/profile", label: "Update Profile" },
-  { href: "/sign-in", label: "Sign In" },
-]
-
-const socials = [
-  { label: "MentorLagbe on X", href: "https://x.com", Icon: XIcon },
-  {
-    label: "MentorLagbe on GitHub",
-    href: "https://github.com",
-    Icon: GithubIcon,
-  },
-  {
-    label: "MentorLagbe on LinkedIn",
-    href: "https://linkedin.com",
-    Icon: LinkedinIcon,
-  },
-  {
-    label: "MentorLagbe on Facebook",
-    href: "https://facebook.com",
-    Icon: FacebookIcon,
-  },
-  {
-    label: "MentorLagbe on YouTube",
-    href: "https://youtube.com",
-    Icon: YoutubeIcon,
-  },
 ]
 
 function FooterColumn({ title, children }) {
@@ -63,24 +32,13 @@ export function Footer() {
         <div className="max-w-xs">
           <Logo />
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            MentorLagbe connects students with verified tutors and mentorship
-            batches — from class 6 to university, online or offline, across
-            Bangladesh.
+            {SCHOOL_INFO.name} — {SCHOOL_INFO.tagline}. A morning session in
+            English Medium (July–June) and an afternoon session in English
+            Version (January–December).
           </p>
-          <div className="mt-5 flex items-center gap-2">
-            {socials.map(({ label, href, Icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label={label}
-                className="flex size-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-              >
-                <Icon className="size-4" />
-              </a>
-            ))}
-          </div>
+          <p className="mt-4 text-sm font-medium text-foreground">
+            “{SCHOOL_INFO.motto}”
+          </p>
         </div>
 
         <FooterColumn title="Explore">
@@ -98,10 +56,25 @@ export function Footer() {
           </ul>
         </FooterColumn>
 
-        <FooterColumn title="Quick Links">
-          <ul className="space-y-2.5 text-sm text-muted-foreground">
-            {quickLinks.map((link) => (
-              <li key={link.label}>
+        <FooterColumn title="Sessions">
+          <ul className="space-y-3 text-sm text-muted-foreground">
+            {SESSIONS.map((session) => (
+              <li key={session.id}>
+                <span className="block font-medium text-foreground">
+                  {session.name}
+                </span>
+                <span className="block text-xs">
+                  {session.medium} · {session.period}
+                </span>
+                <span className="block text-xs">
+                  {session.classes.join(" · ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-5 space-y-2.5 text-sm text-muted-foreground">
+            {portalLinks.map((link) => (
+              <li key={link.href}>
                 <Link
                   href={link.href}
                   className="transition-colors hover:text-primary"
@@ -118,28 +91,24 @@ export function Footer() {
             <li className="flex items-start gap-2.5">
               <Mail className="mt-0.5 size-4 shrink-0 text-primary" />
               <a
-                href="mailto:hello@mentorlagbe.com"
+                href={`mailto:${SCHOOL_INFO.email}`}
                 className="transition-colors hover:text-primary"
               >
-                hello@mentorlagbe.com
+                {SCHOOL_INFO.email}
               </a>
             </li>
             <li className="flex items-start gap-2.5">
               <Phone className="mt-0.5 size-4 shrink-0 text-primary" />
               <a
-                href="tel:+8801700000000"
+                href={`tel:${SCHOOL_INFO.phone.replace(/[^+\d]/g, "")}`}
                 className="transition-colors hover:text-primary"
               >
-                +880 1700-000000
+                {SCHOOL_INFO.phone}
               </a>
             </li>
             <li className="flex items-start gap-2.5">
               <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
-              <span>
-                House 12, Road 5
-                <br />
-                Banani, Dhaka 1213, Bangladesh
-              </span>
+              <span>{SCHOOL_INFO.address}</span>
             </li>
           </ul>
         </FooterColumn>
@@ -147,19 +116,11 @@ export function Footer() {
 
       <div className="border-t border-border">
         <div className="container-page flex flex-col items-center justify-between gap-3 py-5 text-xs text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} MentorLagbe. All rights reserved.</p>
-          <p className="flex items-center gap-2">
-            Designed &amp; built for Bangladesh
-            <a
-              href="https://x.com"
-              target="_blank"
-              rel="noreferrer noopener"
-              aria-label="MentorLagbe on X"
-              className="text-muted-foreground transition-colors hover:text-primary"
-            >
-              <XIcon className="size-3.5" />
-            </a>
+          <p>
+            © {new Date().getFullYear()} {SCHOOL_INFO.name}. All rights
+            reserved.
           </p>
+          <p>{SCHOOL_INFO.motto}</p>
         </div>
       </div>
     </footer>

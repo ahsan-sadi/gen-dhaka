@@ -1,8 +1,8 @@
-# MentorLagbe — Frontend Conventions (read before writing any code)
+# BAFWWA GEN DHAKA — Frontend Conventions (read before writing any code)
 
-> This is a **frontend-only** Next.js 16 (App Router) project written in **plain JavaScript**.
-> Data is mocked in the browser (localStorage-backed store) — there is no backend.
-> Keep every file **.js / .jsx** (no TypeScript).
+> Next.js 16 (App Router) project written in **plain JavaScript** (no
+> TypeScript). Data comes from the Express + MongoDB API in
+> `backend-gen-dhaka` — there is **no mock store**.
 
 ## 1. Stack facts (Next.js 16 — differences from older Next)
 
@@ -13,9 +13,13 @@
 - Turbopack is the default bundler. `next build` does NOT run lint.
 - shadcn components are built on **Base UI**, not Radix:
   - Composing a link/button: use the **`render` prop**, never `asChild`:
-    `<Button render={<Link href="/tuitions" />}>Browse</Button>`
+    `<Button render={<Link href="/about" />}>About</Button>`
   - Menu items use **`onClick`**, not `onSelect`.
   - `Sheet`/`Dialog` need `SheetTitle`/`DialogTitle` for a11y.
+- **React Server Components boundary:** a server component can never pass a
+  *function* (e.g. a Lucide icon component) as a prop into a `"use client"`
+  component — pass strings/primitives instead and resolve the icon inside the
+  client tree (`components/dashboard/module-placeholder.jsx` shows the pattern).
 - `npm run build` must always pass before you finish.
 
 ## 2. Design system (Modern SaaS · indigo/violet)
@@ -39,109 +43,113 @@ Rules:
 - Cards: `rounded-2xl border border-border bg-card`, equal height via `flex h-full flex-col`.
 - Grids: `grid gap-6 sm:grid-cols-2 lg:grid-cols-3` (3-up), `gap-4 sm:grid-cols-2 xl:grid-cols-4` for stats.
 - Buttons: always the shadcn `Button` (`variant="default" | "outline" | "ghost" | "secondary" | "destructive"`, `size="sm" | "default" | "lg" | "icon-sm"`). Primary = indigo. Don't invent new button styles.
-- Images: uniform heights (`h-44` on cards, `aspect-[4/3]` hero). Use plain `<img>` for avatars (dicebear SVG), `next/image` optional for banners (host allow-list: images.unsplash.com, i.pravatar.cc, api.dicebear.com, i.ibb.cc, picsum.photos).
+- Avatars: never hardcode a path — `avatarUrl(person)` from `@/lib/utils`
+  returns the stored image or a deterministic Dicebear initials avatar.
 - Fully responsive: mobile-first, test `sm:` breakpoints, use `Sheet` for mobile menus.
 
 ## 3. UI kit (components/ui — already converted to JSX)
 
 Available (import from `@/components/ui/<name>`):
-`button, badge, card (Card/CardHeader/CardTitle/CardDescription/CardContent/CardFooter), input, label, textarea, select (Select/SelectTrigger/SelectValue/SelectContent/SelectItem), dialog, alert-dialog, sheet, dropdown-menu, tabs, table (Table/TableHeader/TableBody/TableHead/TableRow/TableCell), skeleton, separator, switch, checkbox, radio-group, avatar, tooltip, popover, accordion, empty (Empty/EmptyHeader/EmptyMedia/EmptyTitle/EmptyDescription/EmptyContent), alert, spinner, pagination, kbd, switch, scroll-area`
+`button, badge, card (Card/CardHeader/CardTitle/CardDescription/CardContent/CardFooter), input, label, textarea, select (Select/SelectTrigger/SelectValue/SelectContent/SelectItem), dialog, alert-dialog, sheet, dropdown-menu, tabs, table (Table/TableHeader/TableBody/TableHead/TableRow/TableCell), skeleton, separator, switch, checkbox, radio-group, avatar, tooltip, popover, accordion, empty (Empty/EmptyHeader/EmptyMedia/EmptyTitle/EmptyDescription/EmptyContent), alert, spinner, pagination, kbd, scroll-area`
 
 Shared project components:
-- `@/components/shared/tuition-card` → `<TuitionCard tuition={t} showStatus />` (equal-height listing card)
 - `@/components/shared/page-header` → `<PageHeader eyebrow title description actions />`
 - `@/components/shared/stat-card` → `<StatCard label value sublabel icon={Icon} tone="primary|violet|emerald|amber|rose|sky" />`
-- `@/components/shared/role-badge` → `<RoleBadge role plan />`, `<StatusBadge status label />`
+- `@/components/shared/role-badge` → `<RoleBadge role />`, `<StatusBadge status label />`
 - `@/components/shared/empty-state` → `<EmptyState icon title description actionLabel actionHref />`
-- `@/components/shared/skeletons` → `TuitionCardSkeleton, TuitionGridSkeleton, StatCardSkeleton, StatsGridSkeleton, TableSkeleton, PageSkeleton`
-- `@/components/shared/image-upload` → `<ImageUpload label value onChange maxSize rounded hint />` (ImgBB/local upload, Challenge 3)
-- `@/components/shared/plan-card` → `<PlanCard plan audience currentPlan highlighted />`
+- `@/components/shared/skeletons` → `CardSkeleton, CardGridSkeleton, StatCardSkeleton, StatsGridSkeleton, TableSkeleton, PageSkeleton`
+- `@/components/dashboard/status` → `<BackendAlert error />`, `<LoadingRow label />`, `<DbHint />`
+- `@/components/dashboard/module-placeholder` → sidebar-complete shell for modules still being built (pass `iconName`, not an icon component)
+
+**Built modules (import the same way):**
+
+- `@/components/dashboard/staff/staff-form` → `<StaffFormDialog open onOpenChange staff stats onSaved />` — create/edit a staff member, quota banner included
+- `@/components/dashboard/staff/staff-table` → `<StaffTable rows loading currentUserId onEdit onChanged />`, plus `<StaffTableError error onRetry />`
+- `@/components/dashboard/staff/quota-bar` → `<QuotaBar used limit />` and `QUOTA_TONES`
+- `@/components/dashboard/sessions/session-form` → `<SessionFormDialog … onRequestDelete />` and `<SessionActiveSwitch session onSaved />`
+- `@/components/dashboard/sessions/class-form` → `<ClassFormDialog open onOpenChange klass sessions teachers defaultSessionId onSaved onRequestDelete />`
+
+Every dialog takes `onSaved` (refetch) and reports outcomes with `sonner` toasts; `onRequestDelete` opens the shared `AlertDialog` confirm held by the page.
+
 - `@/components/site/navbar`, `@/components/site/footer`, `@/components/site/logo`, `@/components/site/theme-toggle`
 
-## 4. Data layer (the "database")
+## 4. Data layer (the API)
 
 ```js
-import { useStore } from "@/lib/store"     // client hook
+import { api, ApiError } from "@/lib/api"          // fetch client (Bearer token)
+import { useApi } from "@/hooks/use-api"           // GET hook
 import { useAuth, useRequireAuth, dashboardHome } from "@/lib/auth-context"
 ```
 
-`useStore()` returns:
+`useApi(path)` → `{ data, error, loading, refetch }` (re-fetches when `path`
+changes; `enabled: false` pauses it).
+
+Low-level calls — **always handle the thrown `ApiError`**:
+
 ```js
-{
-  users, tuitions, applications, payments, reviews, bookmarks, session, hydrated,
-  currentUser,          // signed-in user object or null
-  actions: { ... }      // ALL async — always `await` them, they resolve in ~300ms
+try {
+  const result = await api.post("/api/staff", payload)
+} catch (error) {
+  toast.error(error.message)     // server's { error } message
 }
+const list = await api.get("/api/staff?role=teacher&q=rumi")
+await api.patch("/api/staff/:id", patch)
+await api.del("/api/staff/:id")
 ```
 
-State shapes (mirrors the 4 collections):
-```js
-user:      { _id, name, email, password, image, role: 'student'|'tutor'|'admin', phone, bio, plan: 'free'|'pro', createdAt }
-tuition:   { _id, title, subject, classLevel, mode:'Online'|'Offline', location, monthlyFee, daysPerWeek, schedule, bannerImage, description, tutorName, tutorEmail, tutorPlan, approvalStatus:'pending'|'approved'|'rejected', isActive, createdAt }
-application:{ _id, tuitionId, tuitionTitle, subject, monthlyFee, tutorEmail, studentName, studentEmail, studentPhone, preferredSchedule, studentNote, status:'pending'|'accepted'|'rejected', appliedAt }
-payment:   { _id, userEmail, userName, userRole, planName, amount, currency, transactionId, stripeSessionId, paymentStatus:'paid', paidAt }
-           // ^ written to MongoDB by the Stripe webhook — read via GET /api/payments, not useStore()
-review:    { _id, tuitionId, studentName, rating, comment, createdAt }
-```
-
-Actions (signatures):
-```js
-await actions.signUp({ name, email, password, role })        // → { ok, user? , error? }
-await actions.signIn({ email, password })                    // → { ok, user?, error? }
-await actions.signOut()
-await actions.updateProfile({ name, phone, bio, image, email })
-await actions.createTuition(data)   // → { ok, tuition?, error? } (free tutors max 2)
-await actions.updateTuition(id, patch) | deleteTuition(id) | toggleTuitionActive(id)
-await actions.setTuitionApproval(id, 'approved'|'rejected')   // admin
-await actions.applyToTuition(tuitionId, { studentPhone, preferredSchedule, studentNote }) // role-checked, duplicate-checked
-await actions.setApplicationStatus(id, 'accepted'|'rejected') // tutor
-await actions.cancelApplication(id)                           // student, pending only
-await actions.toggleBookmark(tuitionId)
-// Payments are REAL Stripe (not the mock store):
-//   POST /api/checkout { planId }        → { url } — redirect the browser there
-//   GET  /api/checkout/verify?session_id → receipt from Stripe (records + upgrades if the webhook is late)
-//   GET  /api/payments (admin)           → usePayments() hook → real MongoDB records
-// The mock `actions.checkout(plan)` still exists but is no longer wired to the UI.
-await actions.setUserRole(id, role)   // admin
-await actions.addReview({ tuitionId, rating, comment })
-await actions.resetDemo()             // resets localStorage back to seed
-```
-
-Every action returns `{ ok: boolean, error?: string }`. On failure show `toast.error(result.error)`,
-on success `toast.success("…")` — **use `sonner`** (`import { toast } from "sonner"`). The root
-layout already renders `<Toaster richColors position="top-right" closeButton />`.
+API base: `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`). Errors are
+`{ error: string }` with real HTTP statuses (401 auth · 403 role · 409
+conflict/quota · 503 DB unavailable).
 
 Auth helpers:
+
 ```js
-const { user, isAuthenticated, role, signIn, signOut } = useAuth()
-const { user, ready } = useRequireAuth(["tutor"])  // guards + redirects, use in dashboards
-dashboardHome(role) // '/dashboard/student' | '/dashboard/tutor' | '/dashboard/admin'
+const { user, isAuthenticated, role, hydrated, signIn, signOut, refreshUser } = useAuth()
+const { user, ready } = useRequireAuth(["teacher"])  // guards + redirects, use in dashboards
+dashboardHome(role)  // '/dashboard/principal' | '/dashboard/admin' | '/dashboard/teacher' | '/dashboard/student'
 ```
 
-Demo accounts (show these on sign-in page): `student@/tutor@/admin@mentorlagbe.com` + password `123456`.
+`signIn({ email, password })` → `{ ok, user?, error? }`. Tokens live in
+localStorage; the cached user revalidates against `GET /api/auth/me` on load.
 
-Constants (`@/lib/constants`): `NAV_LINKS, SUBJECTS, CLASS_LEVELS, MODES, DAYS_PER_WEEK,
-ROLES, ROLE_LABELS, PLANS (free/proTutor/proStudent), FREE_TUTOR_POST_LIMIT, STATUS_STYLES,
-DEMO_ACCOUNTS`.
-Seed data (`@/lib/data/seed`): `seedUsers, seedTuitions (14), seedApplications, seedPayments,
-seedReviews, testimonials, platformStats, subjectHighlights`.
+Demo accounts (password `123456`): `principal@ / admin@ / teacher@ / student@
+bafwwa.edu.bd`.
 
-Image upload: `import { uploadImage } from "@/lib/upload"` → `uploadImage(file, { maxSize })`
-returns `{ ok, url, simulated? , error? }`. Use `<ImageUpload>` component instead of calling directly.
+## 5. School domain (fixed — never invent your own)
 
-## 5. Page conventions
+Constants live in `@/lib/constants`:
 
-- Public pages live in **`app/(public)/`** (they automatically get Navbar + Footer via the layout).
-- Dashboard pages live in **`app/dashboard/`** (sidebar shell layout).
-- Every route that fetches/derives data gets a `loading.jsx` using the shared skeletons.
+- `SESSIONS` — Morning Session (English Medium, **July → June**,
+  Play Group/Nursery-I/Nursery-II/KG) and Afternoon Session (English Version,
+  **January → December**, Play Group/Nursery). Each entry carries `accent`,
+  `ring` and `classes` for consistent UI.
+- `ROLES` / `ROLE_LABELS` — `principal | admin | teacher | student`
+  (`support` = Supporting Staff, record-only, **no login**).
+- `STAFF_HEADCOUNT` / `STAFF_QUOTAS` — 1 Principal, 8 Admin, 65 Teacher,
+  50 Support. Quotas are enforced server-side (409); UI should show them.
+- `DEPARTMENTS`, `TEACHER_SUBJECTS`, `SUPPORT_DUTIES`, `STATUS_STYLES`,
+  `DEMO_ACCOUNTS`, `SCHOOL_INFO`, `formatMoney`, `formatDate`.
+
+List responses may be a bare array **or** an envelope — normalise with
+`toList(data, "staff")` / `docId(doc)` from `@/lib/utils`.
+
+## 6. Page conventions
+
+- Public pages live in **`app/(public)/`** (they get Navbar + Footer via the layout).
+- Dashboard pages live in **`app/dashboard/<role>/`** (sidebar shell layout).
+- Every dashboard section gets a `loading.jsx` using the shared skeletons
+  (role-level `loading.jsx` covers child routes).
 - Forms: controlled `useState`, validate before submit, `pending` state on the button
-  (`disabled={pending}` + spinner), toast on success/error, reset on success.
-- Money: tuition fees are **BDT (`৳` + `.toLocaleString()`)**; Stripe plans are **USD `$`**.
-- Dates: `new Date(x).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })`.
+  (`disabled={pending}` + spinner), toast on success/error (`sonner`), reset on success.
+- Dates: `formatDate(...)` → `06 Mar 2026`.
+- Every sidebar link must have a real route from day one — use
+  `ModulePlaceholder` until the module is built.
 - Never add TypeScript. Never touch `components/ui/*` unless it's a bug fix.
-- Metadata: export `export const metadata = { title: "…" }` from **server** pages only
-  (client pages can't export metadata — skip it there).
+- Metadata: export `export const metadata = { title: "…" }` from **server**
+  pages only (client pages can't export metadata — skip it there).
 
-## 6. File ownership (do not create/modify files outside your assignment)
+## 7. File ownership
 
-See the task prompt you were given. Shared files (store, constants, ui kit, navbar, layout) are frozen.
+Shared files (`lib/constants.js`, `lib/api.js`, `lib/auth-context.jsx`, the
+`components/ui` kit, navbar/layout) are shared — extend them carefully and keep
+existing exports intact.

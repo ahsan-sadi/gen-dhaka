@@ -11,7 +11,7 @@ export function Logo({ className, size = "md", href = "/", compact = false }) {
     <Link
       href={href}
       className={cn("group flex items-center gap-2.5 font-heading", className)}
-      aria-label="MentorLagbe home"
+      aria-label="BAFWWA GEN DHAKA home"
     >
       <span
         className={cn(
@@ -24,11 +24,11 @@ export function Logo({ className, size = "md", href = "/", compact = false }) {
       {!compact && (
         <span
           className={cn(
-            "font-extrabold tracking-tight text-foreground",
+            "leading-tight font-extrabold tracking-tight text-foreground",
             textSize
           )}
         >
-          Mentor<span className="text-gradient">Lagbe</span>
+          BAFWWA <span className="text-gradient">GEN DHAKA</span>
         </span>
       )}
     </Link>

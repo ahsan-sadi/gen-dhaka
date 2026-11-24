@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronsLeft, LayoutDashboard, LogOut, Sparkles } from "lucide-react"
+import { ChevronsLeft, LayoutDashboard, LogOut } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -16,7 +16,7 @@ import {
 import { Logo } from "@/components/site/logo"
 import { getNavItems } from "@/components/dashboard/nav-config"
 import { dashboardHome, useAuth } from "@/lib/auth-context"
-import { signOutEverywhere } from "@/lib/auth-client"
+import { ROLE_LABELS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 export function NavList({ user, collapsed = false, onNavigate }) {
@@ -52,37 +52,6 @@ export function NavList({ user, collapsed = false, onNavigate }) {
         )
       })}
     </nav>
-  )
-}
-
-function PlanCard({ user, collapsed }) {
-  const router = useRouter()
-  if (collapsed) return null
-  const isPro = user.plan === "pro"
-
-  return (
-    <div className="rounded-xl border border-violet-200 bg-violet-50 p-3.5 dark:border-violet-500/25 dark:bg-violet-500/10">
-      <div className="flex items-center gap-2 text-sm font-semibold text-violet-700 dark:text-violet-300">
-        <Sparkles className="size-4" />
-        {isPro ? "Pro plan active" : "Free plan"}
-      </div>
-      <p className="mt-1.5 text-xs leading-relaxed text-violet-600/90 dark:text-violet-200/80">
-        {isPro
-          ? "Unlimited posts, verified badge and priority ranking are unlocked."
-          : user.role === "tutor"
-            ? "Upgrade for unlimited tuition posts and a verified badge."
-            : "Upgrade for priority booking and direct tutor access."}
-      </p>
-      {!isPro && (
-        <Button
-          size="sm"
-          className="mt-3 w-full bg-violet-600 text-white hover:bg-violet-500"
-          onClick={() => router.push("/pricing")}
-        >
-          Upgrade to Pro
-        </Button>
-      )}
-    </div>
   )
 }
 
@@ -130,10 +99,25 @@ export function Sidebar({ user, collapsed, onToggleCollapse }) {
       </div>
 
       <div className="space-y-3 border-t border-border p-3">
-        <PlanCard user={user} collapsed={collapsed} />
+        <SchoolCard user={user} collapsed={collapsed} />
         <SignOutButton collapsed={collapsed} />
       </div>
     </aside>
+  )
+}
+
+/* School identity block shown at the bottom of the sidebar. */
+function SchoolCard({ user, collapsed }) {
+  if (collapsed) return null
+  return (
+    <div className="rounded-xl border border-border bg-muted/60 p-3.5">
+      <p className="text-xs font-semibold text-foreground">
+        BAFWWA GEN DHAKA
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground capitalize">
+        {ROLE_LABELS[user.role] || user.role} · Morning &amp; Afternoon Sessions
+      </p>
+    </div>
   )
 }
 
@@ -142,9 +126,8 @@ function SignOutButton({ collapsed }) {
   const { signOut } = useAuth()
 
   const handleSignOut = async () => {
-    /* Revokes the session on every device and clears the demo-store session. */
-    await Promise.allSettled([signOutEverywhere(), signOut()])
-    toast.success("Signed out from all devices")
+    await signOut()
+    toast.success("Signed out successfully")
     router.push("/")
     router.refresh()
   }
@@ -179,14 +162,14 @@ export function MobileNav({ user, trigger }) {
           <Logo href={dashboardHome(user.role)} className="mb-5" />
           <NavList user={user} />
           <div className="mt-5">
-            <PlanCard user={user} />
+            <SchoolCard user={user} />
           </div>
           <Button
             variant="ghost"
             className="mt-3 w-full justify-start text-muted-foreground hover:text-destructive"
             onClick={async () => {
-              await Promise.allSettled([signOutEverywhere(), signOut()])
-              toast.success("Signed out from all devices")
+              await signOut()
+              toast.success("Signed out successfully")
               router.push("/")
               router.refresh()
             }}

@@ -34,9 +34,8 @@ import {
 import { Logo } from "@/components/site/logo"
 import { RoleBadge } from "@/components/shared/role-badge"
 import { useAuth, dashboardHome } from "@/lib/auth-context"
-import { NAV_LINKS } from "@/lib/constants"
-import { cn } from "@/lib/utils"
-import { useSession, signOutEverywhere } from "@/lib/auth-client"
+import { NAV_LINKS, ROLE_LABELS } from "@/lib/constants"
+import { avatarUrl, cn } from "@/lib/utils"
 
 function NavLink({ href, label, pathname, onClick, className }) {
   const active = href === "/" ? pathname === "/" : pathname.startsWith(href)
@@ -68,15 +67,14 @@ export function Navbar() {
   useEffect(() => setMounted(true), [])
   const isDark = mounted && resolvedTheme === "dark"
 
-  const { data: sessionData } = useSession()
-  const currentUser = sessionData?.user
+  const currentUser = user
 
   const toggleTheme = () =>
     setTheme(resolvedTheme === "dark" ? "light" : "dark")
 
   const handleSignOut = async () => {
-    /* Revokes the session on every device and clears the demo-store session. */
-    await Promise.allSettled([signOutEverywhere(), signOut()])
+    await signOut()
+    toast.success("Signed out successfully")
     router.push("/sign-in") // redirect to login page
     router.refresh()
   }
@@ -104,7 +102,7 @@ export function Navbar() {
           aria-label="Account menu"
         >
           <img
-            src={currentUser.image || "/images/avatar-placeholder.png"}
+            src={avatarUrl(currentUser)}
             alt={currentUser.name}
             className="size-8 rounded-full border border-border bg-muted object-cover"
           />
@@ -112,8 +110,8 @@ export function Navbar() {
             <span className="block max-w-32 truncate text-sm leading-tight font-semibold">
               {currentUser.name}
             </span>
-            <span className="block max-w-32 truncate text-[11px] leading-tight text-muted-foreground capitalize">
-              {currentUser.role} · "Standerd" plan
+            <span className="block max-w-32 truncate text-[11px] leading-tight text-muted-foreground">
+              {ROLE_LABELS[currentUser.role] || currentUser.role}
             </span>
           </span>
         </DropdownMenuTrigger>
@@ -122,7 +120,7 @@ export function Navbar() {
             <DropdownMenuLabel className="flex flex-col gap-2">
               <span className="flex items-center gap-2">
                 <img
-                  src={currentUser.image || "/images/avatar-placeholder.png"}
+                  src={avatarUrl(currentUser)}
                   alt=""
                   className="size-9 rounded-full border border-border bg-muted"
                 />
@@ -135,7 +133,7 @@ export function Navbar() {
                   </span>
                 </span>
               </span>
-              <RoleBadge role={currentUser.role} plan="" />
+              <RoleBadge role={currentUser.role} />
             </DropdownMenuLabel>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -159,8 +157,8 @@ export function Navbar() {
       <Button variant="ghost" size="sm" render={<Link href="/sign-in" />}>
         Sign In
       </Button>
-      <Button size="sm" render={<Link href="/sign-up" />}>
-        Sign Up
+      <Button size="sm" render={<Link href="/sign-in" />}>
+        Portal Login
       </Button>
     </div>
   )
@@ -240,7 +238,7 @@ export function Navbar() {
                     <div className="flex items-center gap-2 px-1 py-2">
                       <img
                         src={
-                          currentUser.image || "/images/avatar-placeholder.png"
+                          avatarUrl(currentUser)
                         }
                         alt=""
                         className="size-9 rounded-full border border-border"
@@ -249,11 +247,7 @@ export function Navbar() {
                         <p className="truncate text-sm font-semibold">
                           {currentUser.name}
                         </p>
-                        <RoleBadge
-                          role={currentUser.role}
-                          plan="Standard"
-                          className="mt-1"
-                        />
+                        <RoleBadge role={currentUser.role} className="mt-1" />
                       </div>
                     </div>
                     <Button
@@ -282,8 +276,8 @@ export function Navbar() {
                     >
                       Sign In
                     </Button>
-                    <Button size="sm" onClick={() => go("/sign-up")}>
-                      Sign Up
+                    <Button size="sm" onClick={() => go("/sign-in")}>
+                      Portal Login
                     </Button>
                   </>
                 )}

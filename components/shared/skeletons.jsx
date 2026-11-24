@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
-export function TuitionCardSkeleton() {
+export function CardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <Skeleton className="h-44 w-full rounded-none" />
@@ -20,11 +20,11 @@ export function TuitionCardSkeleton() {
   )
 }
 
-export function TuitionGridSkeleton({ count = 6 }) {
+export function CardGridSkeleton({ count = 6 }) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
-        <TuitionCardSkeleton key={i} />
+        <CardSkeleton key={i} />
       ))}
     </div>
   )
@@ -81,7 +81,7 @@ export function PageSkeleton() {
     <div className="container-page space-y-6 py-12">
       <Skeleton className="h-9 w-72" />
       <Skeleton className="h-4 w-96 max-w-full" />
-      <TuitionGridSkeleton count={6} />
+      <CardGridSkeleton count={6} />
     </div>
   )
 }

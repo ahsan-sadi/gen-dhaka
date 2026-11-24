@@ -2,7 +2,6 @@ import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { StoreProvider } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { Toaster } from "sonner"
 
@@ -16,11 +15,11 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata = {
   title: {
-    default: "MentorLagbe — Find Your Ideal Tutor or Mentorship Batch",
-    template: "%s · MentorLagbe",
+    default: "BAFWWA GEN DHAKA — School Management Portal",
+    template: "%s · BAFWWA GEN DHAKA",
   },
   description:
-    "MentorLagbe connects Bangladeshi students with verified tutors and mentorship batches for classes, board exams, admission tests and beyond.",
+    "BAFWWA GEN DHAKA school management portal — Morning Session (English Medium, July–June) and Afternoon Session (English Version, January–December), with Principal, Admin, Teacher and Student dashboards.",
 }
 
 export default function RootLayout({ children }) {
@@ -39,10 +38,8 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-svh bg-background text-foreground">
         <ThemeProvider>
-          <StoreProvider>
-            <div className="flex min-h-screen flex-col">{children}</div>
-            <Toaster richColors position="top-right" closeButton />
-          </StoreProvider>
+          <div className="flex min-h-screen flex-col">{children}</div>
+          <Toaster richColors position="top-right" closeButton />
         </ThemeProvider>
       </body>
     </html>

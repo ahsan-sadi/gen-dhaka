@@ -1,104 +1,72 @@
 import Link from "next/link"
 import {
   ArrowRight,
-  BadgeCheck,
-  ClipboardCheck,
-  CreditCard,
-  Handshake,
-  ImageUp,
+  CalendarRange,
+  GraduationCap,
   LayoutDashboard,
-  MonitorSmartphone,
-  ScanSearch,
-  Search,
-  UserPlus,
+  ShieldCheck,
+  Users,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { platformStats } from "@/lib/data/seed"
+import {
+  SCHOOL_INFO,
+  SESSIONS,
+  STAFF_HEADCOUNT,
+  ROLE_LABELS,
+} from "@/lib/constants"
 
 export const metadata = {
-  title: "How It Works",
+  title: "About the School",
   description:
-    "How MentorLagbe works — sign up, post or discover tuition batches, get admin approval, then apply and connect from one clean dashboard.",
+    "BAFWWA GEN DHAKA — an English Medium and English Version play school with a Morning Session (July–June) and an Afternoon Session (January–December), run from one admin-managed platform.",
 }
 
-/* ------------------------------- timeline -------------------------------- */
-
-const steps = [
+const structure = [
   {
-    icon: UserPlus,
-    title: "Sign up in under a minute",
-    text: "Create a free account as a Student or Tutor — pick your role, add your email and password, and you land in a dashboard built for that role. Every account starts on the Free plan, no card required.",
-    points: [
-      "Student, Tutor or Admin roles",
-      "Free plan forever, upgrade any time",
-    ],
+    icon: ShieldCheck,
+    title: ROLE_LABELS.principal,
+    count: STAFF_HEADCOUNT.principal,
+    text: "Provides overall leadership, reviews reports and approves school-wide decisions from the Principal dashboard.",
   },
   {
-    icon: Search,
-    title: "Post or discover tuitions",
-    text: "Tutors publish a tuition batch from their dashboard — title, subject, class level, fee, schedule and a banner image. Students search the live listings by title, subject or tutor and filter by class level and mode.",
-    points: [
-      "Free tutors can keep up to 2 live posts",
-      "URL-driven search, filters are shareable",
-    ],
+    icon: Users,
+    title: ROLE_LABELS.admin,
+    count: STAFF_HEADCOUNT.admin,
+    text: "The control center — manages staff records, sessions, classes, admissions, attendance oversight and notices.",
   },
   {
-    icon: ClipboardCheck,
-    title: "Admin approval",
-    text: "Every new listing enters a pending queue. Our admin team reviews each submission for completeness and accuracy, then approves or rejects it — only real, approved batches ever go public.",
-    points: [
-      "Pending → Approved / Rejected status",
-      "Students only see verified listings",
-    ],
-  },
-  {
-    icon: Handshake,
-    title: "Apply & connect",
-    text: "Students apply with their phone number, preferred schedule and a short note. Tutors review applicants in the dashboard and accept or reject — both sides track every application's status in real time.",
-    points: [
-      "One application per student per tuition",
-      "Accept / reject decisions in the dashboard",
-    ],
-  },
-]
-
-/* ------------------------------ why us grid ------------------------------ */
-
-const features = [
-  {
-    icon: BadgeCheck,
-    title: "Verified listings",
-    text: "Every tuition is reviewed by the admin team before it goes public, so students only ever see complete, real batches.",
+    icon: GraduationCap,
+    title: ROLE_LABELS.teacher,
+    count: STAFF_HEADCOUNT.teacher,
+    text: "Teach across both sessions, keep class rosters and record daily attendance for their assigned classes.",
   },
   {
     icon: LayoutDashboard,
-    title: "Role-based dashboards",
-    text: "Students, tutors and admins each get their own sidebar dashboard with the exact tools that role needs — nothing more.",
-  },
-  {
-    icon: ScanSearch,
-    title: "Server-side search",
-    text: "Search and filters run through the server with shareable URLs, so results are fast, consistent and easy to link to.",
-  },
-  {
-    icon: CreditCard,
-    title: "Secure Stripe plans",
-    text: "Upgrades run through Stripe's hosted checkout with clear pricing and instant activation — the plan flips to Pro the moment the payment lands.",
-  },
-  {
-    icon: ImageUp,
-    title: "ImgBB image uploads",
-    text: "Tutors upload banner images and avatars straight to ImgBB with size checks — no external hosting setup needed.",
-  },
-  {
-    icon: MonitorSmartphone,
-    title: "Responsive design",
-    text: "The whole marketplace is mobile-first: sheets for menus, stacked grids and touch-friendly controls on every screen.",
+    title: ROLE_LABELS.support,
+    count: STAFF_HEADCOUNT.support,
+    text: "Guard, nursing, kitchen, transport, cleaning and grounds staff — records and duties maintained by the admin office (no login required).",
   },
 ]
 
-/* --------------------------------- page ---------------------------------- */
+const flow = [
+  {
+    title: "Administration sets up the school",
+    text: "The Admin dashboard creates staff records, defines the two sessions and their six classes, and issues login credentials — nothing exists in the system until the admin creates it.",
+  },
+  {
+    title: "Admissions enroll students",
+    text: "Every student is admitted into a session and class by the admin, receiving a student ID, roll number and portal login tied to that class.",
+  },
+  {
+    title: "Teachers run the classroom",
+    text: "Assigned teachers open their classes, see the student roster and record attendance, which flows straight into reports.",
+  },
+  {
+    title: "Principal reviews the whole picture",
+    text: "Live head-counts, class-wise enrollment, attendance summaries and notices are visible in one place for decision-making.",
+  },
+]
 
 export default function AboutPage() {
   return (
@@ -107,123 +75,71 @@ export default function AboutPage() {
       <section className="section border-b border-border/60">
         <div className="container-page">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow">How MentorLagbe works</p>
+            <p className="eyebrow">About the school</p>
             <h1 className="section-title mt-3">
-              From sign-up to{" "}
-              <span className="text-gradient">first connection</span> in four
-              steps
+              {SCHOOL_INFO.name} —{" "}
+              <span className="text-gradient">{SCHOOL_INFO.motto}</span>
             </h1>
             <p className="section-lead mx-auto">
-              MentorLagbe is a full tutoring marketplace for Bangladesh —
-              students find approved batches, tutors grow their classes, and
-              admins keep everything spam-free. Here is exactly how the whole
-              flow works.
+              {SCHOOL_INFO.tagline} with two parallel academic sessions and six
+              classes, run day-to-day through a single admin-controlled
+              management platform.
             </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Button size="lg" render={<Link href="/sign-in" />}>
+                Portal Login <ArrowRight className="size-4" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                render={<Link href="/#sessions" />}
+              >
+                <CalendarRange className="size-4" /> Sessions
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------ timeline ---------------------------- */}
+      {/* ------------------------------ structure --------------------------- */}
       <section className="section border-b border-border bg-muted/40">
         <div className="container-page">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow">The workflow</p>
+            <p className="eyebrow">School structure</p>
             <h2 className="section-title mt-3">
-              Four steps from search to success
+              {STAFF_HEADCOUNT.principal +
+                STAFF_HEADCOUNT.admin +
+                STAFF_HEADCOUNT.teacher +
+                STAFF_HEADCOUNT.support}{" "}
+              people, <span className="text-gradient">one admin office</span>
             </h2>
             <p className="section-lead mx-auto">
-              The same simple flow whether you are looking for a tutor or
-              looking for students — expanded below so you know exactly what
-              happens at each stage.
+              Head-counts are part of the school's identity and are enforced by
+              the system — the admin dashboard cannot exceed them.
             </p>
           </div>
 
-          <ol className="relative mx-auto mt-12 max-w-3xl space-y-6">
-            {steps.map((step, index) => {
-              const Icon = step.icon
-              return (
-                <li key={step.title} className="relative flex gap-5">
-                  <div className="flex flex-col items-center">
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 font-heading text-sm font-extrabold text-white shadow-lg shadow-indigo-500/25">
-                      {index + 1}
-                    </span>
-                    {index < steps.length - 1 && (
-                      <span
-                        className="my-2 w-px flex-1 bg-gradient-to-b from-indigo-300 via-violet-300 to-fuchsia-300 dark:from-indigo-800 dark:via-violet-800 dark:to-fuchsia-800"
-                        aria-hidden
-                      />
-                    )}
-                  </div>
-
-                  <div className="card-hover min-w-0 flex-1 rounded-2xl border border-border bg-card p-6">
-                    <div className="flex items-center gap-3">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/25">
-                        <Icon className="size-5" />
-                      </span>
-                      <h3 className="font-heading text-lg font-bold tracking-tight">
-                        {step.title}
-                      </h3>
-                    </div>
-                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                      {step.text}
-                    </p>
-                    <ul className="mt-4 space-y-2 border-t border-border pt-4">
-                      {step.points.map((point) => (
-                        <li
-                          key={point}
-                          className="flex items-start gap-2 text-sm text-muted-foreground"
-                        >
-                          <span className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
-                            <span className="size-1.5 rounded-full bg-current" />
-                          </span>
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
-              )
-            })}
-          </ol>
-
-          <div className="mt-10 text-center">
-            <Button size="lg" render={<Link href="/sign-up" />}>
-              Create your free account <ArrowRight className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* ------------------------------ why grid ---------------------------- */}
-      <section className="section border-b border-border">
-        <div className="container-page">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow">Why MentorLagbe</p>
-            <h2 className="section-title mt-3">
-              Built for real teaching &amp; learning
-            </h2>
-            <p className="section-lead mx-auto">
-              Everything below is part of the product today — not a roadmap. Six
-              reasons students and tutors keep coming back.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {structure.map((item) => {
+              const Icon = item.icon
               return (
                 <div
-                  key={feature.title}
+                  key={item.title}
                   className="card-hover flex h-full flex-col rounded-2xl border border-border bg-card p-6"
                 >
-                  <span className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/25">
-                    <Icon className="size-5" />
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/25">
+                      <Icon className="size-5" />
+                    </span>
+                    <span className="font-heading text-3xl font-extrabold tracking-tight text-gradient">
+                      {item.count}
+                    </span>
+                  </div>
                   <h3 className="mt-4 font-heading text-base font-semibold">
-                    {feature.title}
+                    {item.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {feature.text}
+                    {item.text}
                   </p>
                 </div>
               )
@@ -232,31 +148,84 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ------------------------------- stats ------------------------------ */}
-      <section className="section border-b border-border bg-muted/40">
+      {/* -------------------------------- flow ------------------------------ */}
+      <section className="section border-b border-border">
         <div className="container-page">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow">Platform statistics</p>
-            <h2 className="section-title mt-3">Trusted across Bangladesh</h2>
+            <p className="eyebrow">How the school runs</p>
+            <h2 className="section-title mt-3">
+              Admin-first, <span className="text-gradient">step by step</span>
+            </h2>
             <p className="section-lead mx-auto">
-              Real numbers from a growing community of verified tutors, students
-              and mentorship batches.
+              Every module is created and controlled from the Admin dashboard;
+              the other three dashboards only read verified data.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {platformStats.map((stat) => (
+          <ol className="relative mx-auto mt-12 max-w-3xl space-y-6">
+            {flow.map((step, index) => (
+              <li key={step.title} className="relative flex gap-5">
+                <div className="flex flex-col items-center">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 font-heading text-sm font-extrabold text-white shadow-lg shadow-indigo-500/25">
+                    {index + 1}
+                  </span>
+                  {index < flow.length - 1 && (
+                    <span
+                      className="my-2 w-px flex-1 bg-gradient-to-b from-indigo-300 via-violet-300 to-fuchsia-300 dark:from-indigo-800 dark:via-violet-800 dark:to-fuchsia-800"
+                      aria-hidden
+                    />
+                  )}
+                </div>
+                <div className="card-hover min-w-0 flex-1 rounded-2xl border border-border bg-card p-6">
+                  <h3 className="font-heading text-lg font-bold tracking-tight">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    {step.text}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ------------------------------- sessions --------------------------- */}
+      <section className="section border-b border-border bg-muted/40">
+        <div className="container-page">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="eyebrow">Sessions at a glance</p>
+            <h2 className="section-title mt-3">Morning &amp; Afternoon</h2>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            {SESSIONS.map((session) => (
               <div
-                key={stat.label}
-                className="card-hover rounded-2xl border border-border bg-card p-6 text-center"
+                key={session.id}
+                className="rounded-2xl border border-border bg-card p-6"
               >
-                <p className="text-gradient font-heading text-4xl font-extrabold tracking-tight">
-                  {stat.value}
-                  {stat.suffix}
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-heading text-lg font-bold tracking-tight">
+                    {session.name}
+                  </h3>
+                  <span
+                    className={`rounded-full bg-gradient-to-br ${session.accent} px-3 py-1 text-xs font-semibold text-white`}
+                  >
+                    {session.medium}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Academic year: {session.period}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {stat.label}
-                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {session.classes.map((name) => (
+                    <span
+                      key={name}
+                      className="rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -267,38 +236,22 @@ export default function AboutPage() {
       <section className="section">
         <div className="container-page">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 px-8 py-14 text-center shadow-2xl shadow-violet-500/25 sm:px-14">
-            <div
-              className="pointer-events-none absolute inset-0 opacity-25"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 20% 20%, white 1px, transparent 1px)",
-                backgroundSize: "26px 26px",
-              }}
-              aria-hidden
-            />
             <div className="relative mx-auto max-w-2xl">
-              <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                Ready to find your perfect match?
+              <h2 className="font-heading text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                Part of {SCHOOL_INFO.name}?
               </h2>
               <p className="mt-4 text-base leading-relaxed text-white/85">
-                Create a free account in under a minute, or browse the approved
-                tuition batches that are live right now across Bangladesh.
+                Principal, admin staff, teachers and students each sign in to
+                their own dashboard — credentials are issued by the school
+                office.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Button
                   size="lg"
                   className="bg-white text-indigo-700 hover:bg-white/90"
-                  render={<Link href="/sign-up" />}
+                  render={<Link href="/sign-in" />}
                 >
-                  Sign up free <ArrowRight className="size-4" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
-                  render={<Link href="/tuitions" />}
-                >
-                  Browse Tuitions
+                  Sign in <ArrowRight className="size-4" />
                 </Button>
               </div>
             </div>

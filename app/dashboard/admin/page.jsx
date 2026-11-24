@@ -1,277 +1,197 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
 import {
-  ArrowRight,
-  CheckCircle2,
-  Clock3,
-  CreditCard,
+  CalendarRange,
   GraduationCap,
-  Loader2,
   ShieldCheck,
+  UserCheck,
   Users,
-  XCircle,
+  UsersRound,
 } from "lucide-react"
-import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import EmptyState from "@/components/shared/empty-state"
 import PageHeader from "@/components/shared/page-header"
 import StatCard from "@/components/shared/stat-card"
+import { StatsGridSkeleton } from "@/components/shared/skeletons"
+import { BackendAlert, DbHint } from "@/components/dashboard/status"
+import { useApi } from "@/hooks/use-api"
+import {
+  ROLE_LABELS,
+  SESSIONS,
+  STAFF_HEADCOUNT,
+} from "@/lib/constants"
 import { useRequireAuth } from "@/lib/auth-context"
-import { useUsers } from "@/hooks/use-users"
-import { useTutions } from "@/hooks/use-tutions"
-import { usePayments } from "@/hooks/use-payments"
-import { updateTutions } from "@/lib/actions/tutions"
-
-const fmtDate = (iso) =>
-  new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
-
-/* ------------------------------ panel shell ------------------------------ */
-
-function Panel({ title, subtitle, action, children }) {
-  return (
-    <div className="flex h-full flex-col rounded-2xl border border-border bg-card">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
-        <div>
-          <h2 className="font-heading text-lg font-extrabold tracking-tight text-foreground">
-            {title}
-          </h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-        </div>
-        {action}
-      </div>
-      <div className="flex flex-1 flex-col">{children}</div>
-    </div>
-  )
-}
-
-/* --------------------------------- page ---------------------------------- */
 
 export default function AdminOverviewPage() {
-  const { ready } = useRequireAuth(["admin"])
-  /* Real accounts from `GET /users` — the localStorage store only ever held
-     whatever that one browser had seeded, so these counts were fictional. */
-  const { users, hydrated: usersHydrated } = useUsers()
-  /* Every listing, every status — the pending queue lives here. */
-  const { tuitions, hydrated, refetch } = useTutions({ scope: "all" })
-  /* Revenue + recent transactions come from real Stripe records in MongoDB. */
-  const { payments, hydrated: paymentsHydrated } = usePayments()
-  const [busyId, setBusyId] = useState(null)
+  const { user } = useRequireAuth(["admin"])
+  const { data, error, loading } = useApi("/api/stats/overview")
 
-  const studentCount = users.filter((u) => u.role === "student").length
-  const tutorCount = users.filter((u) => u.role === "tutor").length
-  const proTutorCount = users.filter(
-    (u) => u.role === "tutor" && u.plan === "pro"
-  ).length
+  const staff = data?.staff
+  const students = data?.students
 
-  const pendingTuitions = tuitions.filter((t) => t.approvalStatus === "pending")
-  const approvedCount = tuitions.filter(
-    (t) => t.approvalStatus === "approved"
-  ).length
-  const revenue = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
-  const recentPayments = [...payments]
-    .sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt))
-    .slice(0, 5)
-
-  const decide = async (tuition, status) => {
-    setBusyId(tuition._id)
-    const result = await updateTutions(tuition._id, {
-      approvalStatus: status,
-    })
-    setBusyId(null)
-    if (!result.ok) return toast.error(result.error)
-    refetch()
-    toast.success(
-      status === "approved"
-        ? `"${tuition.title}" approved`
-        : `"${tuition.title}" rejected`
-    )
-  }
-
-  if (!ready || !hydrated || !paymentsHydrated || !usersHydrated) {
-    return (
-      <div className="flex min-h-[45vh] items-center justify-center text-sm text-muted-foreground">
-        Redirecting to the admin dashboard…
-      </div>
-    )
-  }
+  const stats = [
+    {
+      label: ROLE_LABELS.principal,
+      value: staff?.principal ?? STAFF_HEADCOUNT.principal,
+      sublabel: "Head of the school",
+      icon: ShieldCheck,
+      tone: "violet",
+    },
+    {
+      label: ROLE_LABELS.admin,
+      value: staff?.admin ?? STAFF_HEADCOUNT.admin,
+      sublabel: `Quota ${STAFF_HEADCOUNT.admin} · control center`,
+      icon: Users,
+      tone: "sky",
+    },
+    {
+      label: ROLE_LABELS.teacher,
+      value: staff?.teacher ?? STAFF_HEADCOUNT.teacher,
+      sublabel: `Quota ${STAFF_HEADCOUNT.teacher} across both sessions`,
+      icon: GraduationCap,
+      tone: "primary",
+    },
+    {
+      label: ROLE_LABELS.support,
+      value: staff?.support ?? STAFF_HEADCOUNT.support,
+      sublabel: `Quota ${STAFF_HEADCOUNT.support} · admin-managed only`,
+      icon: UsersRound,
+      tone: "amber",
+    },
+  ]
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Admin"
-        title="Platform overview"
-        description="Keep an eye on users, tuition approvals and Stripe revenue across MentorLagbe — payments stream in live from Stripe via webhooks."
+        eyebrow="Control Center"
+        title={`Welcome back, ${user?.name?.split(" ")[0] || "Admin"}`}
+        description="Everything the school runs — staff, sessions, classes and admissions — is created and maintained right here. The Principal, Teacher and Student dashboards read only what you set up."
         actions={
-          <Button render={<Link href="/dashboard/admin/tuitions" />}>
-            <ShieldCheck className="size-4" /> Review tuitions
-          </Button>
+          <>
+            <Button render={<Link href="/dashboard/admin/staff" />}>
+              <Users className="size-4" /> Manage Staff
+            </Button>
+            <Button
+              variant="outline"
+              render={<Link href="/dashboard/admin/students" />}
+            >
+              <GraduationCap className="size-4" /> Admissions
+            </Button>
+          </>
         }
       />
 
-      {/* ------------------------------ stats ------------------------------ */}
+      <BackendAlert error={error} />
+
+      {loading ? (
+        <StatsGridSkeleton count={4} />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))}
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Total Users"
-          value={users.length}
-          sublabel={`${studentCount} students · ${tutorCount} tutors`}
-          icon={Users}
+          label="Students Enrolled"
+          value={students?.total ?? (loading ? "…" : "—")}
+          sublabel="Admissions created by the admin office"
+          icon={GraduationCap}
+          tone="emerald"
+        />
+        <StatCard
+          label="Sessions"
+          value={SESSIONS.length}
+          sublabel="Morning & Afternoon"
+          icon={CalendarRange}
           tone="primary"
         />
         <StatCard
-          label="Total Tutors"
-          value={tutorCount}
-          sublabel={`${proTutorCount} on the Pro plan`}
-          icon={GraduationCap}
+          label="Classes"
+          value={SESSIONS.reduce((total, s) => total + s.classes.length, 0)}
+          sublabel="Play Group → KG across both sessions"
+          icon={UsersRound}
           tone="violet"
         />
         <StatCard
-          label="Pending vs Approved Tuitions"
-          value={`${pendingTuitions.length} / ${approvedCount}`}
-          sublabel="pending vs approved listings"
-          icon={Clock3}
-          tone="amber"
-        />
-        <StatCard
-          label="Total Stripe Revenue"
-          value={`$${revenue}`}
-          sublabel={`${payments.length} successful payments`}
-          icon={CreditCard}
-          tone="emerald"
+          label="Active Logins"
+          value={staff ? staff.total + (students?.total ?? 0) : "—"}
+          sublabel="Staff + student portal accounts"
+          icon={UserCheck}
+          tone="sky"
         />
       </div>
 
-      {/* ---------------------------- two panels --------------------------- */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Panel
-          title="Pending approvals"
-          subtitle={
-            pendingTuitions.length
-              ? `${pendingTuitions.length} tuition ${
-                  pendingTuitions.length === 1 ? "is" : "are"
-                } waiting for review`
-              : "Nothing is waiting for review"
-          }
-          action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-              render={<Link href="/dashboard/admin/tuitions" />}
-            >
-              Review all <ArrowRight className="size-4" />
-            </Button>
-          }
-        >
-          {pendingTuitions.length === 0 ? (
-            <div className="flex-1 p-5">
-              <EmptyState
-                icon={CheckCircle2}
-                title="No pending approvals"
-                description="Every tuition posted by tutors has been reviewed. New submissions will show up here."
-              />
-            </div>
-          ) : (
-            pendingTuitions.map((tuition) => (
-              <div
-                key={tuition._id}
-                className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 last:border-b-0"
-              >
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/tuitions/${tuition._id}`}
-                    className="block truncate text-sm font-semibold text-foreground transition-colors hover:text-primary"
-                  >
-                    {tuition.title}
-                  </Link>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {tuition.tutorName} ·{" "}
-                    <span className="font-semibold text-foreground">
-                      ৳{Number(tuition.monthlyFee).toLocaleString()}
-                    </span>
-                    /month · {fmtDate(tuition.createdAt)}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    size="sm"
-                    disabled={busyId === tuition._id}
-                    onClick={() => decide(tuition, "approved")}
-                  >
-                    {busyId === tuition._id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="size-4" />
-                    )}
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    disabled={busyId === tuition._id}
-                    onClick={() => decide(tuition, "rejected")}
-                  >
-                    <XCircle className="size-4" /> Reject
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </Panel>
+      {/* --------------------------- sessions summary --------------------------- */}
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-heading text-lg font-extrabold tracking-tight">
+              Sessions &amp; classes
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              The fixed academic structure of {SESSIONS.length === 2 && "both "}
+              the school, managed under Sessions &amp; Classes.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" render={<Link href="/dashboard/admin/sessions" />}>
+            <CalendarRange className="size-4" /> Manage sessions
+          </Button>
+        </div>
 
-        <Panel
-          title="Recent transactions"
-          subtitle="Latest Stripe payments from Pro upgrades"
-          action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-              render={<Link href="/dashboard/admin/transactions" />}
-            >
-              View all <ArrowRight className="size-4" />
-            </Button>
-          }
-        >
-          {recentPayments.length === 0 ? (
-            <div className="flex-1 p-5">
-              <EmptyState
-                icon={CreditCard}
-                title="No transactions yet"
-                description="Payments will appear here as soon as tutors and students upgrade to a Pro plan."
-              />
-            </div>
-          ) : (
-            <div className="flex-1 divide-y divide-border">
-              {recentPayments.map((payment) => (
-                <div
-                  key={payment.stripeSessionId || String(payment._id)}
-                  className="flex items-center justify-between gap-3 px-5 py-3.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {payment.planName}
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {SESSIONS.map((session) => {
+            const count = students?.bySession?.find(
+              (item) => item.name === session.name
+            )?.count
+            return (
+              <div
+                key={session.id}
+                className={`rounded-2xl border border-border bg-background p-4 ring-4 ${session.ring}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-heading text-base font-bold">
+                      {session.name}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {payment.userName} · {fmtDate(payment.paidAt)}
+                    <p className="text-xs text-muted-foreground">
+                      {session.medium} · {session.period}
                     </p>
                   </div>
-                  <span className="shrink-0 font-heading text-sm font-extrabold tracking-tight text-emerald-600 dark:text-emerald-300">
-                    ${Number(payment.amount).toFixed(2)}
+                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                    {count === undefined ? "—" : count} students
                   </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </Panel>
-      </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {session.classes.map((name) => {
+                    const classCount = students?.byClass?.find(
+                      (item) => item.className === name
+                    )?.count
+                    return (
+                      <div
+                        key={name}
+                        className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                      >
+                        <span className="font-medium">{name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {classCount ?? "—"}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-4">
+          <DbHint />
+        </div>
+      </section>
     </div>
   )
 }

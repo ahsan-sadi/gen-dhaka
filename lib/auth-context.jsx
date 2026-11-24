@@ -1,92 +1,145 @@
 "use client"
 
-/* Thin auth layer over the BetterAuth session — provides user, JWT token, and
-   auth actions.
+/* Auth layer for the BAFWWA GEN DHAKA school app.
 
-   The JWT comes from Better Auth's `jwt()` plugin on the SAME origin
-   (GET /api/auth/token), via lib/auth-token.js. One token is cached for the
-   whole app and every `useAuth()` consumer subscribes to it, so the value is
-   ready before the user can click "Apply" / "Submit for approval". */
+   The Express backend issues a JWT on POST /api/auth/login; we keep the token
+   plus a cached copy of the user in localStorage so dashboards hydrate
+   instantly, then revalidate against GET /api/auth/me on every mount. */
 
 import { useRouter } from "next/navigation"
-import { useEffect, useCallback, useSyncExternalStore } from "react"
-import { useStore } from "./store"
-import { authClient, useSession } from "./auth-client"
 import {
-  getToken,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import {
+  api,
+  clearStoredUser,
   clearToken,
-  getCachedToken,
-  subscribeToken,
-} from "./auth-token"
+  getStoredUser,
+  getToken,
+  setStoredUser,
+  setToken,
+} from "./api"
+
+/* Module-level subscription so every useAuth() consumer stays in sync. */
+let listeners = new Set()
+let snapshot = { user: null, hydrated: false }
+
+function emit(next) {
+  snapshot = next
+  listeners.forEach((listener) => listener())
+}
+
+function subscribe(listener) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+let revalidating = null
+
+async function revalidate() {
+  if (revalidating) return revalidating
+  revalidating = (async () => {
+    try {
+      const user = await api.get("/api/auth/me")
+      setStoredUser(user)
+      emit({ user, hydrated: true })
+    } catch {
+      clearToken()
+      clearStoredUser()
+      emit({ user: null, hydrated: true })
+    } finally {
+      revalidating = null
+    }
+  })()
+  return revalidating
+}
 
 export function useAuth() {
-  const { data, isPending } = useSession()
-  const { actions } = useStore()
-  const user = data?.user ?? null
+  /* SSR and the first client render are both anonymous — the cached session is
+     applied inside an effect, so server HTML and hydration always match. */
+  const [state, setState] = useState({ user: null, hydrated: false })
+  const bootstrapped = useRef(false)
 
-  /* Shared, cached JWT — null until a session exists. */
-  const token = useSyncExternalStore(subscribeToken, getCachedToken, () => null)
-
-  /* Warm the cache as soon as the session resolves (and again right after a
-     sign-in, when the session flips from null to a user). */
   useEffect(() => {
-    if (isPending) return
-    if (user) getToken()
-    else clearToken()
-  }, [isPending, user])
+    const unsubscribe = subscribe(() => setState(snapshot))
 
-  const refreshToken = useCallback(() => getToken({ force: true }), [])
+    if (!bootstrapped.current) {
+      bootstrapped.current = true
+      emit({ user: getStoredUser(), hydrated: true })
+      if (getToken()) revalidate()
+    } else {
+      setState(snapshot)
+    }
+    return unsubscribe
+  }, [])
 
-  return {
-    user,
-    token,
-    hydrated: !isPending,
-    isAuthenticated: Boolean(user),
-    role: user?.role || null,
-    signIn: actions.signIn,
-    signUp: actions.signUp,
-    /* Clear the JWT first, then end the Better Auth session for real — the
-       mock store alone would leave `useSession()` reporting the user as
-       still signed in. */
-    signOut: async () => {
-      clearToken()
-      try {
-        await authClient.signOut()
-      } catch {
-        /* the local cache is already cleared — continue regardless */
-      }
-      return actions.signOut()
-    },
-    updateProfile: actions.updateProfile,
-    refreshToken,
-  }
+  const signIn = useCallback(async ({ email, password }) => {
+    try {
+      const result = await api.post(
+        "/api/auth/login",
+        { email, password },
+        { auth: false }
+      )
+      setToken(result.token)
+      setStoredUser(result.user)
+      emit({ user: result.user, hydrated: true })
+      return { ok: true, user: result.user }
+    } catch (error) {
+      return { ok: false, error: error.message }
+    }
+  }, [])
+
+  const signOut = useCallback(async () => {
+    clearToken()
+    clearStoredUser()
+    emit({ user: null, hydrated: true })
+    return { ok: true }
+  }, [])
+
+  const refreshUser = useCallback(() => revalidate(), [])
+
+  const user = state.user
+
+  return useMemo(
+    () => ({
+      user,
+      token: typeof window === "undefined" ? null : getToken(),
+      hydrated: state.hydrated,
+      isAuthenticated: Boolean(user),
+      role: user?.role || null,
+      signIn,
+      signOut,
+      refreshUser,
+    }),
+    [state.user, state.hydrated, signIn, signOut, refreshUser]
+  )
 }
 
 /* Client-side route guard used by the dashboard layout. */
 export function useRequireAuth(allowedRoles = null) {
-  const { data, isPending } = useSession()
+  const { user, hydrated } = useAuth()
   const router = useRouter()
 
-  const user = data?.user ?? null
-  const hydrated = !isPending
-
   const denied =
-    hydrated &&
-    (!user || (allowedRoles && !allowedRoles.includes(user.role)))
+    hydrated && (!user || (allowedRoles && !allowedRoles.includes(user.role)))
 
   useEffect(() => {
-    if (isPending) return
+    if (!hydrated) return
     if (!user) {
       router.replace("/sign-in")
     } else if (allowedRoles && !allowedRoles.includes(user.role)) {
       router.replace(dashboardHome(user.role))
     }
-  }, [isPending, user, router])
+  }, [hydrated, user, router, allowedRoles])
 
   return {
     user,
     ready:
-      !isPending &&
+      hydrated &&
       Boolean(user) &&
       (!allowedRoles || allowedRoles.includes(user.role)),
     denied,
@@ -94,7 +147,8 @@ export function useRequireAuth(allowedRoles = null) {
 }
 
 export function dashboardHome(role) {
+  if (role === "principal") return "/dashboard/principal"
   if (role === "admin") return "/dashboard/admin"
-  if (role === "tutor") return "/dashboard/tutor"
+  if (role === "teacher") return "/dashboard/teacher"
   return "/dashboard/student"
 }

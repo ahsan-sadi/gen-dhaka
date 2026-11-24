@@ -1,6 +1,6 @@
 import {
   StatsGridSkeleton,
-  TuitionGridSkeleton,
+  CardGridSkeleton,
   TableSkeleton,
 } from "@/components/shared/skeletons"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,7 +15,7 @@ export default function StudentLoading() {
       </div>
       <StatsGridSkeleton count={4} />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <TuitionGridSkeleton count={3} />
+        <CardGridSkeleton count={3} />
       </div>
       <TableSkeleton rows={4} cols={5} />
     </div>
