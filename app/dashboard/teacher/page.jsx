@@ -15,30 +15,27 @@ import StatCard from "@/components/shared/stat-card"
 import { StatsGridSkeleton } from "@/components/shared/skeletons"
 import { BackendAlert, DbHint, LoadingRow } from "@/components/dashboard/status"
 import { EmptyState } from "@/components/shared/empty-state"
-import { useApi } from "@/hooks/use-api"
 import { useRequireAuth } from "@/lib/auth-context"
+import { useTeacherScope } from "@/hooks/use-teacher-scope"
 import { SESSIONS } from "@/lib/constants"
-import { docId, toList } from "@/lib/utils"
+import { cn, docId } from "@/lib/utils"
+
+/** Session accent matched by name — Mongo ids never equal the static ids. */
+function sessionRing(sessionName) {
+  return (
+    SESSIONS.find((session) => session.name === sessionName)?.ring ||
+    "ring-transparent"
+  )
+}
 
 export default function TeacherOverviewPage() {
   const { user } = useRequireAuth(["teacher"])
+  const { classes, countFor, loading, error, refetch } = useTeacherScope(user)
 
-  const classesQuery = useApi("/api/classes")
-  const statsQuery = useApi("/api/stats/overview")
-
-  const loading = classesQuery.loading || statsQuery.loading
-  const error = classesQuery.error || statsQuery.error
-
-  const allClasses = toList(classesQuery.data, "classes")
-  const myClasses = allClasses.filter(
-    (cls) => cls.classTeacherId && docId(cls.classTeacherId) === docId(user)
+  const myStudents = classes.reduce(
+    (total, klass) => total + countFor(klass.id),
+    0,
   )
-
-  const studentsByClass = statsQuery.data?.students?.byClass || []
-  const myStudents = myClasses.reduce((total, cls) => {
-    const found = studentsByClass.find((item) => item.className === cls.name)
-    return total + (found?.count || 0)
-  }, 0)
 
   return (
     <div className="space-y-6">
@@ -69,7 +66,7 @@ export default function TeacherOverviewPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="My Classes"
-            value={myClasses.length}
+            value={classes.length}
             sublabel="Where you are class teacher"
             icon={BookOpen}
             tone="primary"
@@ -120,7 +117,7 @@ export default function TeacherOverviewPage() {
         <div className="mt-4">
           {loading ? (
             <LoadingRow label="Loading your classes…" />
-          ) : myClasses.length === 0 ? (
+          ) : classes.length === 0 ? (
             <EmptyState
               icon={BookOpen}
               title="No class assigned yet"
@@ -130,57 +127,81 @@ export default function TeacherOverviewPage() {
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {myClasses.map((cls) => {
-                const count = studentsByClass.find(
-                  (item) => item.className === cls.name
-                )?.count
-                const session = SESSIONS.find((s) => s.id === cls.sessionId)
-                return (
-                  <div
-                    key={docId(cls)}
-                    className={`rounded-2xl border border-border bg-background p-4 ring-4 ${session?.ring || "ring-transparent"}`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-heading text-base font-bold tracking-tight">
-                          {cls.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {cls.sessionName || session?.name}
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                        {count ?? "—"} students
-                      </span>
+              {classes.map((cls) => (
+                <div
+                  key={docId(cls)}
+                  className={cn(
+                    "rounded-2xl border border-border bg-background p-4 ring-4",
+                    sessionRing(cls.sessionName),
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-heading text-base font-bold tracking-tight">
+                        {cls.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {cls.sessionName}
+                      </p>
                     </div>
-                    <div className="mt-4 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        render={
-                          <Link href="/dashboard/teacher/attendance" />
-                        }
-                      >
-                        <ClipboardCheck className="size-3.5" /> Attendance
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="flex-1"
-                        render={<Link href="/dashboard/teacher/students" />}
-                      >
-                        <Users className="size-3.5" /> Roster
-                      </Button>
-                    </div>
+                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                      {countFor(cls.id)} students
+                    </span>
                   </div>
-                )
-              })}
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      render={
+                        <Link href="/dashboard/teacher/attendance" />
+                      }
+                    >
+                      <ClipboardCheck className="size-3.5" /> Attendance
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="flex-1"
+                      render={
+                        <Link
+                          href={`/dashboard/teacher/students?class=${docId(cls)}`}
+                        />
+                      }
+                      >
+                      <Users className="size-3.5" /> Roster
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-          {!loading && !error && <div className="mt-4"><DbHint /></div>}
+          {!loading && !error && (
+            <div className="mt-4">
+              <DbHint />
+            </div>
+          )}
         </div>
       </section>
+
+      {!loading && !error && classes.length > 0 && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-3.5 text-sm">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <Users className="size-4 text-primary" />
+            <strong className="font-heading font-extrabold text-foreground">
+              {myStudents}
+            </strong>
+            students across your classes
+          </span>
+          <button
+            type="button"
+            onClick={refetch}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
     </div>
   )
 }

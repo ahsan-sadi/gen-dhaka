@@ -68,6 +68,10 @@ Shared project components:
 - `@/components/dashboard/staff/quota-bar` → `<QuotaBar used limit />` and `QUOTA_TONES`
 - `@/components/dashboard/sessions/session-form` → `<SessionFormDialog … onRequestDelete />` and `<SessionActiveSwitch session onSaved />`
 - `@/components/dashboard/sessions/class-form` → `<ClassFormDialog open onOpenChange klass sessions teachers defaultSessionId onSaved onRequestDelete />`
+- `@/components/dashboard/students/student-form` → `<StudentFormDialog open onOpenChange student onSaved />` — admissions dialog with session→class cascade. `POST` auto-assigns `studentId` + the class's next roll number (password defaults to `123456`); on edit, `rollNo` is only sent when typed by hand so a class transfer can auto-assign the new roll server-side.
+- `@/components/dashboard/students/students-table` → `<StudentsTable rows loading currentUserId onEdit onChanged />`, plus `<StudentsTableError error onRetry />`
+- `@/components/dashboard/teacher/roster-table` → `<RosterTable rows loading emptyHint />` (read-only, teachers), plus `<RosterTableError error onRetry />`
+- `@/hooks/use-teacher-scope` → `useTeacherScope(user)` → `{ classes, students, countFor, loading, error, refetch }` — the classes where `user` is class teacher plus their enrolled students (one `classId` query per class)
 
 Every dialog takes `onSaved` (refetch) and reports outcomes with `sonner` toasts; `onRequestDelete` opens the shared `AlertDialog` confirm held by the page.
 
@@ -95,6 +99,12 @@ try {
 const list = await api.get("/api/staff?role=teacher&q=rumi")
 await api.patch("/api/staff/:id", patch)
 await api.del("/api/staff/:id")
+
+// students — list returns { items, total, page, pages }
+const students = await api.get("/api/students?sessionId=&classId=&status=&q=&page=&limit=")
+await api.post("/api/students", payload)    // 201 · auto studentId + rollNo · password defaults to 123456
+await api.patch("/api/students/:id", patch) // admin edits incl. class transfer (auto next rollNo) · self = name/phone/address/guardianPhone + own password
+await api.del("/api/students/:id")          // admin only (403 otherwise)
 ```
 
 API base: `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`). Errors are
