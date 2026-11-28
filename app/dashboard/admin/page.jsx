@@ -16,10 +16,12 @@ import StatCard from "@/components/shared/stat-card"
 import { StatsGridSkeleton } from "@/components/shared/skeletons"
 import { BackendAlert, DbHint } from "@/components/dashboard/status"
 import { useApi } from "@/hooks/use-api"
+import { cn } from "@/lib/utils"
 import {
   ROLE_LABELS,
   SESSIONS,
   STAFF_HEADCOUNT,
+  STAFF_QUOTAS,
 } from "@/lib/constants"
 import { useRequireAuth } from "@/lib/auth-context"
 
@@ -28,7 +30,13 @@ export default function AdminOverviewPage() {
   const { data, error, loading } = useApi("/api/stats/overview")
 
   const staff = data?.staff
+  // Find the principal staff record (there should be exactly one)
+  // Fetch principal data separately (stats/overview only returns counts)
+  const principalQuery = useApi("/api/staff?role=principal&limit=1");
+  const principal = principalQuery.data?.items?.[0] || null;
   const students = data?.students
+
+  // Find the principal staff record (there should be exactly one)
 
   const stats = [
     {
@@ -41,21 +49,21 @@ export default function AdminOverviewPage() {
     {
       label: ROLE_LABELS.admin,
       value: staff?.admin ?? STAFF_HEADCOUNT.admin,
-      sublabel: `Quota ${STAFF_HEADCOUNT.admin} · control center`,
+      sublabel: `Quota ${STAFF_QUOTAS.admin} · control center`,
       icon: Users,
       tone: "sky",
     },
     {
       label: ROLE_LABELS.teacher,
       value: staff?.teacher ?? STAFF_HEADCOUNT.teacher,
-      sublabel: `Quota ${STAFF_HEADCOUNT.teacher} across both sessions`,
+      sublabel: `Quota ${STAFF_QUOTAS.teacher} across both sessions`,
       icon: GraduationCap,
       tone: "primary",
     },
     {
       label: ROLE_LABELS.support,
       value: staff?.support ?? STAFF_HEADCOUNT.support,
-      sublabel: `Quota ${STAFF_HEADCOUNT.support} · admin-managed only`,
+      sublabel: `Quota ${STAFF_QUOTAS.support} · admin-managed only`,
       icon: UsersRound,
       tone: "amber",
     },
@@ -81,6 +89,39 @@ export default function AdminOverviewPage() {
           </>
         }
       />
+
+
+      {/* -------------------------- principal info ------------------------- */}
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <h2 className="font-heading text-lg font-extrabold tracking-tight">Principal Information</h2>
+        {loading && <p className="text-sm text-muted-foreground">Loading principal info…</p>}
+        {!loading && principal && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Name</p>
+              <p className="font-heading text-base">{principal.name}</p>
+              <p className="text-sm text-muted-foreground">Employee ID</p>
+              <p className="font-mono text-sm">{principal.employeeId || "—"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Role</p>
+              <p className="font-medium bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/30 rounded px-2 py-0.5">Principal</p>
+              <p className="text-sm text-muted-foreground">Status</p>
+              <p className={principal.status === "active" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-rose-600 dark:text-rose-400 font-medium"}>{principal.status}</p>
+            </div>
+          </div>
+        )}
+        {!loading && principal && (
+          <div className="mt-4">
+            <Button variant="outline" onClick={() => window.alert("Principal edit coming soon — use Staff Management to update principal details.")}>
+              Edit principal information
+            </Button>
+          </div>
+        )}
+        {!loading && !principal && (
+          <p className="text-sm text-muted-foreground">No principal record found — use <a href="/dashboard/admin/staff">Staff Management</a> to add the principal.</p>
+        )}
+      </section>
 
       <BackendAlert error={error} />
 

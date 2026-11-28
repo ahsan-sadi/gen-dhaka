@@ -171,8 +171,12 @@ export default function PrincipalOverviewPage() {
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {session.classes.map((name) => {
+                      // Match BOTH name and session — both sessions contain a
+                      // "Play Group", name alone would report the wrong count.
                       const classCount = students?.byClass?.find(
-                        (item) => item.className === name
+                        (item) =>
+                          item.className === name &&
+                          item.sessionName === session.name
                       )?.count
                       return (
                         <div

@@ -9,6 +9,7 @@ import {
   BookOpen,
   GraduationCap,
   BarChart3,
+  Wallet,
 } from "lucide-react"
 
 /* Role-based sidebar navigation for /dashboard.
@@ -37,6 +38,7 @@ export function getNavItems(role) {
       { href: "/dashboard/admin/staff", label: "Staff Management", icon: Users },
       { href: "/dashboard/admin/sessions", label: "Sessions & Classes", icon: CalendarRange },
       { href: "/dashboard/admin/students", label: "Students", icon: GraduationCap },
+      { href: "/dashboard/admin/fees", label: "Fees & Payments", icon: Wallet },
       { href: "/dashboard/admin/notices", label: "Notices", icon: MessageSquare },
       profile,
     ]
@@ -48,6 +50,7 @@ export function getNavItems(role) {
       { href: "/dashboard/teacher/my-classes", label: "My Classes", icon: BookOpen },
       { href: "/dashboard/teacher/attendance", label: "Attendance", icon: ClipboardList },
       { href: "/dashboard/teacher/students", label: "My Students", icon: UsersRound },
+      { href: "/dashboard/teacher/notices", label: "Notices", icon: MessageSquare },
       profile,
     ]
   }
@@ -55,6 +58,7 @@ export function getNavItems(role) {
   return [
     { href: "/dashboard/student", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/student/attendance", label: "My Attendance", icon: ClipboardList },
+    { href: "/dashboard/student/fees", label: "My Fees", icon: Wallet },
     { href: "/dashboard/student/notices", label: "Notices", icon: MessageSquare },
     profile,
   ]

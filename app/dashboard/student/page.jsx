@@ -14,19 +14,35 @@ import PageHeader from "@/components/shared/page-header"
 import StatCard from "@/components/shared/stat-card"
 import { StatsGridSkeleton } from "@/components/shared/skeletons"
 import { BackendAlert, DbHint, LoadingRow } from "@/components/dashboard/status"
+import { StatusBadge } from "@/components/shared/role-badge"
 import { useApi } from "@/hooks/use-api"
 import { useRequireAuth } from "@/lib/auth-context"
 import { SESSIONS } from "@/lib/constants"
+import { avatarUrl, docId, toList } from "@/lib/utils"
 
 export default function StudentOverviewPage() {
   const { user } = useRequireAuth(["student"])
 
   const meQuery = useApi("/api/students/me")
   const statsQuery = useApi("/api/stats/overview")
+  const classesQuery = useApi("/api/classes")
 
-  const loading = meQuery.loading || statsQuery.loading
-  const error = meQuery.error || statsQuery.error
   const me = meQuery.data || user
+
+  // My class roster — the count is exact (classId) and can never mix up the
+  // two sessions, both of which contain a "Play Group".
+  const classmatesQuery = useApi(
+    me?.classId ? `/api/students?classId=${me.classId}&limit=100` : "",
+  )
+  const classmates = classmatesQuery.data?.items || []
+  const classTeacher = toList(classesQuery.data, "classes").find(
+    (klass) => String(klass.id) === String(me?.classId),
+  )?.classTeacherName
+
+  const loading =
+    meQuery.loading || statsQuery.loading || classmatesQuery.loading
+  const error =
+    meQuery.error || statsQuery.error || classmatesQuery.error
   const totals = statsQuery.data?.students
 
   return (
@@ -72,10 +88,7 @@ export default function StudentOverviewPage() {
           />
           <StatCard
             label="Classmates"
-            value={
-              totals?.byClass?.find((c) => c.className === me?.className)
-                ?.count ?? "—"
-            }
+            value={classmatesQuery.loading ? "…" : classmates.length}
             sublabel="Students in my class"
             icon={Users}
             tone="emerald"
@@ -115,6 +128,7 @@ export default function StudentOverviewPage() {
                 ["Student ID", me?.studentId],
                 ["Class", me?.className],
                 ["Session", me?.sessionName],
+                ["Class teacher", classTeacher],
                 ["Roll no", me?.rollNo],
                 ["Date of birth", me?.dateOfBirth],
                 ["Guardian", me?.guardianName],
@@ -197,6 +211,86 @@ export default function StudentOverviewPage() {
           </div>
         </section>
       </div>
+
+      {/* ------------------------- my classmates -------------------------- */}
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="size-4 text-primary" />
+            <h2 className="font-heading text-lg font-extrabold tracking-tight">
+              My classmates
+            </h2>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+              {me?.className || "—"}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {classTeacher ? (
+              <>
+                Class teacher:{" "}
+                <span className="font-medium text-foreground">
+                  {classTeacher}
+                </span>
+              </>
+            ) : (
+              "Roll-number order · maintained by the admin office"
+            )}
+          </p>
+        </div>
+
+        <div className="mt-4">
+          {classmatesQuery.loading ? (
+            <LoadingRow label="Loading your classmates…" />
+          ) : classmates.length === 0 ? (
+            <p className="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+              No classmates are enrolled yet — the admin office maintains class
+              lists.
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[...classmates]
+                .sort(
+                  (a, b) =>
+                    (Number(a.rollNo) || 0) - (Number(b.rollNo) || 0),
+                )
+                .map((peer) => {
+                  const self = docId(peer) === docId(me)
+                  return (
+                    <div
+                      key={peer.id || peer._id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background px-3.5 py-2.5"
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted font-mono text-xs font-bold text-muted-foreground">
+                        {peer.rollNo ?? "—"}
+                      </span>
+                      <img
+                        src={avatarUrl(peer)}
+                        alt=""
+                        className="size-8 shrink-0 rounded-full border border-border bg-muted object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">
+                          {peer.name}
+                          {self && (
+                            <span className="ml-1.5 text-[11px] font-medium text-muted-foreground">
+                              (you)
+                            </span>
+                          )}
+                        </p>
+                        <p className="truncate font-mono text-[11px] text-muted-foreground">
+                          {peer.studentId}
+                        </p>
+                      </div>
+                      {peer.status !== "active" && (
+                        <StatusBadge status={peer.status} label="Inactive" />
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }

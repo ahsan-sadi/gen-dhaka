@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Football on a running track">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="690" cy="90" r="150" fill="#ffffff" opacity="0.08"/>
+  <circle cx="100" cy="400" r="130" fill="#ffffff" opacity="0.06"/>
+  <g fill="none" stroke="#ffffff" stroke-width="6" opacity="0.25">
+    <ellipse cx="400" cy="440" rx="380" ry="130"/>
+    <ellipse cx="400" cy="440" rx="310" ry="102"/>
+    <ellipse cx="400" cy="440" rx="240" ry="76"/>
+  </g>
+  <g>
+    <ellipse cx="400" cy="352" rx="104" ry="20" fill="#ffffff" opacity="0.16"/>
+    <circle cx="400" cy="240" r="88" fill="#ffffff"/>
+    <path d="M400 194 L439 222 L424 268 L376 268 L361 222 Z" fill="#1e293b"/>
+    <g fill="#1e293b">
+      <circle cx="400" cy="156" r="17"/>
+      <circle cx="472" cy="208" r="17"/>
+      <circle cx="445" cy="292" r="17"/>
+      <circle cx="355" cy="292" r="17"/>
+      <circle cx="328" cy="208" r="17"/>
+    </g>
+    <g stroke="#1e293b" stroke-width="7" stroke-linecap="round" opacity="0.9">
+      <line x1="400" y1="173" x2="400" y2="194"/>
+      <line x1="457" y1="214" x2="439" y2="222"/>
+      <line x1="437" y1="276" x2="424" y2="268"/>
+      <line x1="363" y1="276" x2="376" y2="268"/>
+      <line x1="343" y1="214" x2="361" y2="222"/>
+    </g>
+  </g>
+  <g fill="#ffffff" opacity="0.55">
+    <path d="M160 120 L167 138 L185 145 L167 152 L160 170 L153 152 L135 145 L153 138 Z"/>
+    <circle cx="640" cy="150" r="6"/>
+    <circle cx="230" cy="330" r="5"/>
+    <circle cx="600" cy="330" r="5"/>
+  </g>
+</svg>

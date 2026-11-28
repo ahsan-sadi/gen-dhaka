@@ -30,7 +30,7 @@ npm install
 npm run dev
 ```
 
-`.env` → `NEXT_PUBLIC_API_URL=http://localhost:8000`
+[`.env.example`](.env.example) → `NEXT_PUBLIC_API_URL=http://localhost:8000`
 
 ## Demo logins (password `123456`)
 
@@ -91,4 +91,35 @@ of `asChild`), sonner toasts for every API outcome.
 ```bash
 npm run build   # must always pass
 ```
+
+## Deploying to Vercel
+
+Plain Next.js 16 app — no `vercel.json` needed, Vercel detects it.
+
+1. Push this folder (it is its own repo) to GitHub.
+2. Vercel → **Add New Project** → import it. Set the root directory to
+   `frontend-gen-dhaka` if you import the parent folder instead.
+3. Add **one** environment variable (Settings → Environment Variables,
+   scope it to all environments — `NEXT_PUBLIC_*` is inlined at *build* time,
+   so it must exist before the first build):
+
+   ```
+   NEXT_PUBLIC_API_URL=https://your-api.onrender.com   # no trailing slash
+   ```
+
+4. Deploy — Vercel runs `npm install` + `npm run build` automatically.
+
+### Go-live checklist
+
+- [ ] API is live and `GET /api/health` answers `{"ok":true,"db":"up"}`
+- [ ] `NEXT_PUBLIC_API_URL` set on Vercel **before** building (unset, it falls
+      back to `http://localhost:8000` and every browser call fails)
+- [ ] API's `CORS_ORIGIN` includes the Vercel URL
+      (`https://your-app.vercel.app`) — otherwise the browser blocks responses
+- [ ] `npm run seed` run once against the production database
+- [ ] Sign-in works at `/sign-in` (demo logins above)
+
+Env vars used by the app: `NEXT_PUBLIC_API_URL` only. The `BETTER_AUTH_*`,
+`STRIPE_*` and `MONGO_URI` names that may exist in a local `.env` are not
+read by any code path yet.
 # gen-dhaka

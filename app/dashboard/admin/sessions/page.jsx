@@ -31,6 +31,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -491,7 +492,9 @@ export default function AdminSessionsPage() {
                             <MoreHorizontal className="size-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel>Manage</DropdownMenuLabel>
+                            <DropdownMenuGroup>
+                              <DropdownMenuLabel>Manage</DropdownMenuLabel>
+                            </DropdownMenuGroup>
                             <DropdownMenuItem
                               onClick={() => openEditClass(klass)}
                             >

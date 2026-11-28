@@ -26,6 +26,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -236,7 +237,9 @@ export function StudentsTable({
                               )}
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-52">
-                              <DropdownMenuLabel>Manage</DropdownMenuLabel>
+                              <DropdownMenuGroup>
+                                <DropdownMenuLabel>Manage</DropdownMenuLabel>
+                              </DropdownMenuGroup>
                               <DropdownMenuItem
                                 onClick={() => onEdit?.(student)}
                               >

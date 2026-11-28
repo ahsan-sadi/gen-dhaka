@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Stack of story books with a star">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b21b6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="680" cy="110" r="150" fill="#ffffff" opacity="0.08"/>
+  <circle cx="120" cy="420" r="140" fill="#ffffff" opacity="0.06"/>
+  <g fill="#fde68a">
+    <path d="M400 122 L414 162 L454 176 L414 190 L400 230 L386 190 L346 176 L386 162 Z"/>
+    <path d="M570 92 L578 112 L598 120 L578 128 L570 148 L562 128 L542 120 L562 112 Z" opacity="0.85"/>
+    <path d="M228 168 L234 184 L250 190 L234 196 L228 212 L222 196 L206 190 L222 184 Z" opacity="0.8"/>
+  </g>
+  <g transform="rotate(-2 400 372)">
+    <rect x="246" y="350" width="308" height="46" rx="9" fill="#fbbf24"/>
+    <rect x="246" y="350" width="26" height="46" rx="9" fill="#ffffff" opacity="0.75"/>
+    <rect x="264" y="362" width="274" height="8" rx="4" fill="#ffffff" opacity="0.45"/>
+  </g>
+  <g transform="rotate(2 400 322)">
+    <rect x="264" y="304" width="272" height="46" rx="9" fill="#34d399"/>
+    <rect x="264" y="304" width="26" height="46" rx="9" fill="#ffffff" opacity="0.75"/>
+    <rect x="282" y="316" width="238" height="8" rx="4" fill="#ffffff" opacity="0.45"/>
+  </g>
+  <g transform="rotate(-1.5 400 274)">
+    <rect x="284" y="258" width="232" height="46" rx="9" fill="#f472b6"/>
+    <rect x="284" y="258" width="26" height="46" rx="9" fill="#ffffff" opacity="0.75"/>
+    <rect x="302" y="270" width="198" height="8" rx="4" fill="#ffffff" opacity="0.45"/>
+  </g>
+  <g fill="#ffffff" opacity="0.5">
+    <circle cx="640" cy="260" r="6"/>
+    <circle cx="170" cy="270" r="5"/>
+    <circle cx="590" cy="360" r="5"/>
+    <circle cx="210" cy="90" r="5"/>
+  </g>
+</svg>

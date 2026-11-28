@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Warm afternoon sky above the school">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="0.55" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fffbeb" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#fffbeb" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="140" cy="90" r="150" fill="#ffffff" opacity="0.08"/>
+  <circle cx="560" cy="150" r="170" fill="url(#glow)"/>
+  <circle cx="560" cy="150" r="85" fill="#fffbeb"/>
+  <g fill="#ffffff" opacity="0.3">
+    <ellipse cx="170" cy="165" rx="55" ry="28"/>
+    <ellipse cx="215" cy="148" rx="42" ry="30"/>
+    <ellipse cx="252" cy="168" rx="38" ry="22"/>
+  </g>
+  <g fill="#ffffff" opacity="0.22">
+    <ellipse cx="620" cy="330" rx="48" ry="24"/>
+    <ellipse cx="658" cy="316" rx="36" ry="26"/>
+    <ellipse cx="690" cy="332" rx="32" ry="20"/>
+  </g>
+  <path d="M0 430 Q220 370 420 428 T800 420 V500 H0 Z" fill="#ffffff" opacity="0.15"/>
+  <path d="M0 468 Q260 415 520 464 T800 458 V500 H0 Z" fill="#ffffff" opacity="0.12"/>
+</svg>

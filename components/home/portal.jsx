@@ -108,7 +108,7 @@ export function SchoolStats() {
           key={item.label}
           className="rounded-2xl border border-border bg-card p-5 text-center"
         >
-          <p className="font-heading text-3xl font-extrabold tracking-tight text-foreground">
+          <div className="font-heading text-3xl font-extrabold tracking-tight text-foreground">
             {loading && item.dynamic ? (
               <Skeleton className="mx-auto h-8 w-14" />
             ) : item.value === null || item.value === undefined ? (
@@ -116,7 +116,7 @@ export function SchoolStats() {
             ) : (
               item.value
             )}
-          </p>
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
         </div>
       ))}

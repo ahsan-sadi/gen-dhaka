@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="An open book with sparkles">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#047857"/>
+      <stop offset="0.55" stop-color="#0d9488"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="660" cy="380" r="170" fill="#ffffff" opacity="0.07"/>
+  <circle cx="130" cy="110" r="140" fill="#ffffff" opacity="0.06"/>
+  <g fill="#fde68a">
+    <path d="M620 76 L630 100 L654 110 L630 120 L620 144 L610 120 L586 110 L610 100 Z"/>
+    <path d="M110 300 L117 317 L134 324 L117 331 L110 348 L103 331 L86 324 L103 317 Z" opacity="0.9"/>
+    <path d="M712 236 L718 250 L732 256 L718 262 L712 276 L706 262 L692 256 L706 250 Z" opacity="0.75"/>
+  </g>
+  <g fill="#ffffff">
+    <path d="M164 132 L172 152 L192 160 L172 168 L164 188 L156 168 L136 160 L156 152 Z" opacity="0.8"/>
+    <path d="M400 56 L409 79 L432 88 L409 97 L400 120 L391 97 L368 88 L391 79 Z" opacity="0.75"/>
+    <path d="M740 96 L746 110 L760 116 L746 122 L740 136 L734 122 L720 116 L734 110 Z" opacity="0.65"/>
+  </g>
+  <path d="M150 300 Q275 250 395 292 L395 402 Q275 360 150 412 Z" fill="#ffffff" opacity="0.93"/>
+  <path d="M650 300 Q525 250 405 292 L405 402 Q525 360 650 412 Z" fill="#ecfeff" opacity="0.92"/>
+  <g fill="#0f766e" opacity="0.32">
+    <rect x="190" y="325" width="150" height="9" rx="4.5"/>
+    <rect x="190" y="349" width="118" height="9" rx="4.5"/>
+    <rect x="190" y="373" width="138" height="9" rx="4.5"/>
+    <rect x="460" y="325" width="150" height="9" rx="4.5"/>
+    <rect x="460" y="349" width="118" height="9" rx="4.5"/>
+    <rect x="460" y="373" width="138" height="9" rx="4.5"/>
+  </g>
+</svg>

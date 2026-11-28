@@ -15,6 +15,9 @@
   - Composing a link/button: use the **`render` prop**, never `asChild`:
     `<Button render={<Link href="/about" />}>About</Button>`
   - Menu items use **`onClick`**, not `onSelect`.
+  - `DropdownMenuLabel` must sit inside a `DropdownMenuGroup` — Base UI's
+    `Menu.GroupLabel` requires `Menu.Group` context; a bare label crashes the
+    menu on open ("MenuGroupContext is missing").
   - `Sheet`/`Dialog` need `SheetTitle`/`DialogTitle` for a11y.
 - **React Server Components boundary:** a server component can never pass a
   *function* (e.g. a Lucide icon component) as a prop into a `"use client"`
@@ -105,6 +108,18 @@ const students = await api.get("/api/students?sessionId=&classId=&status=&q=&pag
 await api.post("/api/students", payload)    // 201 · auto studentId + rollNo · password defaults to 123456
 await api.patch("/api/students/:id", patch) // admin edits incl. class transfer (auto next rollNo) · self = name/phone/address/guardianPhone + own password
 await api.del("/api/students/:id")          // admin only (403 otherwise)
+
+// fees — months are `YYYY-MM`; dues are computed server-side per month
+const structures = await api.get("/api/fees/structures")     // { items: [{ classId, className, sessionName, structure|null }] }
+await api.put("/api/fees/structures/:classId", { monthlyFee, admissionFee, transportFee, notes }) // admin upsert
+const dues = await api.get("/api/fees/dues?month=2026-11")   // { month, items[expected|paid|due|status], totals }
+await api.post("/api/fees/payments", { studentId, month, amount, method, reference, note, paidAt }) // admin
+await api.del("/api/fees/payments/:id")                      // admin voids a receipt
+const mine = await api.get("/api/fees/me")                   // student-only (403 for staff)
+
+// auth — the JWT always carries `role` (students included), so guards work
+const me = await api.get("/api/auth/me")     // current account (200)
+await api.patch("/api/auth/profile", patch) // self-service: name/phone/address/guardianPhone (+ own password)
 ```
 
 API base: `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`). Errors are
@@ -135,10 +150,19 @@ Constants live in `@/lib/constants`:
   `ring` and `classes` for consistent UI.
 - `ROLES` / `ROLE_LABELS` — `principal | admin | teacher | student`
   (`support` = Supporting Staff, record-only, **no login**).
-- `STAFF_HEADCOUNT` / `STAFF_QUOTAS` — 1 Principal, 8 Admin, 65 Teacher,
-  50 Support. Quotas are enforced server-side (409); UI should show them.
+- `STAFF_QUOTAS` — enforced server-side limits: 1 Principal, 8 Admin;
+  Teacher/Support effectively unlimited (9999) so Admin can add/edit/delete
+  freely (409 on breach). **Quota labels must read from `STAFF_QUOTAS`.**
+- `STAFF_HEADCOUNT` — the school structure (1 / 8 / 65 / 50) used for public
+  stats (hero, about) and dashboard count fallbacks — never for quota labels.
 - `DEPARTMENTS`, `TEACHER_SUBJECTS`, `SUPPORT_DUTIES`, `STATUS_STYLES`,
   `DEMO_ACCOUNTS`, `SCHOOL_INFO`, `formatMoney`, `formatDate`.
+- **Fees:** `FEE_METHODS` / `FEE_METHOD_LABELS` (cash, bKash, Nagad, bank,
+  cheque, card), `FEE_STATUS_LABELS` (`paid | partial | due | no-fee`),
+  `currentMonth()` → `YYYY-MM`, `formatMonth()` → "November 2026".
+  `STATUS_STYLES` already carries `paid`/`partial`/`due` pills — reuse
+  `StatusBadge` instead of inventing new colors. Money always renders through
+  `formatMoney`.
 
 List responses may be a bare array **or** an envelope — normalise with
 `toList(data, "staff")` / `docId(doc)` from `@/lib/utils`.
@@ -146,12 +170,21 @@ List responses may be a bare array **or** an envelope — normalise with
 ## 6. Page conventions
 
 - Public pages live in **`app/(public)/`** (they get Navbar + Footer via the layout).
+- Public pages that show live school data (home principal + notices
+  sections, `/staff`) are **server components** that fetch no-auth endpoints
+  (`GET /api/staff/public`, `GET /api/notices/public`) with
+  `cache: "no-store"` and export `export const dynamic = "force-dynamic"`.
+  Home sections live in `components/home/*`; hide the section (return `null`)
+  instead of erroring when the record is missing.
 - Dashboard pages live in **`app/dashboard/<role>/`** (sidebar shell layout).
 - Every dashboard section gets a `loading.jsx` using the shared skeletons
   (role-level `loading.jsx` covers child routes).
 - Forms: controlled `useState`, validate before submit, `pending` state on the button
   (`disabled={pending}` + spinner), toast on success/error (`sonner`), reset on success.
 - Dates: `formatDate(...)` → `06 Mar 2026`.
+- Print actions call `window.print()` from a client page; hide chrome with
+  `print:hidden` and swap borders via `print:border-gray-400` (see the
+  principal reports page).
 - Every sidebar link must have a real route from day one — use
   `ModulePlaceholder` until the module is built.
 - Never add TypeScript. Never touch `components/ui/*` unless it's a bug fix.

@@ -2,9 +2,10 @@ import Link from "next/link"
 import { ArrowRight, CalendarRange, Sparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { SCHOOL_INFO, SESSIONS, STAFF_HEADCOUNT } from "@/lib/constants"
+import HeroCarousel from "@/components/home/hero-carousel"
+import { SCHOOL_INFO, STAFF_HEADCOUNT } from "@/lib/constants"
 
-/* Public landing hero — school identity + the two academic sessions. */
+/* Public landing hero — school identity + the campus image carousel. */
 export function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border">
@@ -76,41 +77,8 @@ export function Hero() {
             </dl>
           </div>
 
-          {/* session preview cards */}
-          <div className="grid gap-5">
-            {SESSIONS.map((session) => (
-              <div
-                key={session.id}
-                className={`rounded-2xl border border-border bg-card p-5 shadow-sm ring-4 ${session.ring}`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-heading text-lg font-extrabold tracking-tight">
-                      {session.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {session.medium} · {session.period}
-                    </p>
-                  </div>
-                  <span
-                    className={`rounded-full bg-gradient-to-br ${session.accent} px-3 py-1 text-xs font-semibold text-white`}
-                  >
-                    {session.classes.length} classes
-                  </span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {session.classes.map((name) => (
-                    <span
-                      key={name}
-                      className="rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium"
-                    >
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* image carousel */}
+          <HeroCarousel />
         </div>
       </div>
     </section>
